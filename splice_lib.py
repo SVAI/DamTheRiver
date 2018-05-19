@@ -96,6 +96,7 @@ def translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start):
             adj_cds_end = valid_adj_cds_start + 3*len(codon_list) - 1 ###Again check this
             codon_list=("").join(codon_list)
             result= [True,adj_cds_end,codon_list]
+            break
 
     else:
         #print "No in-frame stop codon found"
@@ -104,6 +105,8 @@ def translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start):
     AA= tl.translate_seq(codon_list)
     result.append(AA)
     return result
+
+
 
 def genome_to_transcript_coords(position, strand, transcript_exons, direction = "TG"): ##Where "TG" is transcript -> genome and "GT" is genome -> transcript
     '''

@@ -195,47 +195,8 @@ def assign_cds_to_transcript(cds, transcript, full_transcript_dict, input_cds_di
 	transcript_len = len(transcript_seq)
 
 
-	start_codon_contained = splice_lib.position_contained(transcript_exons, cds_start)
+	start_is_contained, start_containing_exon = splice_lib.position_contained(transcript_exons, cds_start)
 		##Above returns a list where the first element is boolean and the second is either the containing exon (if True) or None (if False)
-	start_is_contained = start_codon_contained[0]
-	start_containing_exon = start_codon_contained[1]
-
-	if splice_lib.position_contained(transcript_exons, cds_end)[0]:
-
-		stop_codon_end_tx_pos = splice_lib.genome_to_transcript_coords(cds_end, strand, transcript_exons, "GT") + 3
-
-		if stop_codon_end_tx_pos > transcript_len:
-
-			stop_is_contained = False
-			end_is_contained = False
-
-		elif transcript_seq[stop_codon_end_tx_pos - 2: stop_codon_end_tx_pos + 1].upper() not in stop_codons:
-
-			stop_is_contained = False
-			end_is_contained = False
-			#print transcript_seq[stop_codon_end_tx_pos - 2: stop_codon_end_tx_pos + 1].upper()
-			#print cds
-			#print transcript
-			#print full_transcript_dict[transcript]
-			#sys.exit()
-
-		else:
-
-			stop_codon_contained = splice_lib.position_contained(transcript_exons, splice_lib.genome_to_transcript_coords(stop_codon_end_tx_pos, strand, transcript_exons, "TG"))
-			stop_is_contained = stop_codon_contained[0]
-			stop_containing_exon = stop_codon_contained[1]
-
-			end_contained = splice_lib.position_contained(transcript_exons, cds_end)
-			end_is_contained = end_contained[0]
-			end_containing_exon = end_contained[1]
-
-	else:
-		stop_is_contained = False
-		end_is_contained = False
-
-
-	junctions_do_overlap = splice_lib.junction_overlap(cds_jl, transcript_jl)
-
 
 	if start_is_contained:
 
@@ -243,55 +204,44 @@ def assign_cds_to_transcript(cds, transcript, full_transcript_dict, input_cds_di
 
 		valid_adj_cds_start = splice_lib.genome_to_transcript_coords(cds_start, strand, transcript_exons, "GT")
 
-		if (end_is_contained and stop_is_contained and junctions_do_overlap) or (stop_is_contained and end_is_contained and (start_containing_exon == stop_containing_exon)):
-
-			valid_cds_end = cds_end
-			annotated = True
-
-			add_cds_to_transcript_dict(strand, transcript_exons, valid_cds_start, valid_cds_end, start_containing_exon, end_containing_exon, chrom, valid_adj_cds_start, full_transcript_dict, transcript, gene, annotated, input_cds_dict)
-
-		else:
-
-			translation_attempt = splice_lib.translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start)
+		translation_attempt = splice_lib.translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start)
 
 			###Note that there are two possible outcomes: 1) a stop codon is found 2) no stop codon is found, and we keep both of them (potentially we may find examples of non-stop decay substrates)
 
-			translation_attempt_is_successful = translation_attempt[0]
+		translation_attempt_is_successful, valid_adj_cds_end, cds_seq, aa_seq = translation_attempt
 
-			if translation_attempt_is_successful:
+		if translation_attempt_is_successful:
 
-				valid_adj_cds_end = translation_attempt[1]
+			valid_cds_end = splice_lib.genome_to_transcript_coords(valid_adj_cds_end, strand, transcript_exons, "TG")
+			
+			stop_containing_exon = splice_lib.position_contained(transcript_exons, valid_cds_end)[1]
 
-				valid_cds_end = splice_lib.genome_to_transcript_coords(valid_adj_cds_end, strand, transcript_exons, "TG")
-
-				
-				stop_containing_exon = splice_lib.position_contained(transcript_exons, valid_cds_end)[1]
-
-				add_cds_to_transcript_dict(strand, transcript_exons, valid_cds_start, valid_cds_end, start_containing_exon, stop_containing_exon, chrom, valid_adj_cds_start, full_transcript_dict, transcript, gene, annotated, input_cds_dict)
+			add_cds_to_transcript_dict(strand, transcript_exons, valid_cds_start, valid_cds_end, start_containing_exon, stop_containing_exon, chrom, valid_adj_cds_start, full_transcript_dict, transcript, gene, annotated, input_cds_dict, cds_seq, aa_seq)
 
 
 
-			elif translation_attempt[1] is None:
+		elif translation_attempt[1] is None:
 
-				if strand == "+":
+			if strand == "+":
 
-					left = valid_cds_start
-					right = transcript_end
+				left = valid_cds_start
+				right = transcript_end
 
-				elif strand == "-":
+			elif strand == "-":
 
-					left = transcript_end
-					right = valid_cds_start
+				left = transcript_end
+				right = valid_cds_start
 
-				if valid_cds_start not in full_transcript_dict[transcript]["nonstop"]:
-					full_transcript_dict[transcript]["nonstop"][valid_cds_start] = {
-																							"start": valid_cds_start,
-																							"exons": splice_lib.get_exon_subset(transcript_exons, left, right),
-																							"gene": gene
-																							}
-					full_transcript_dict[transcript]["gene"] = gene
+			if valid_cds_start not in full_transcript_dict[transcript]["nonstop"]:
+				full_transcript_dict[transcript]["nonstop"][valid_cds_start] = {
+																						"start": valid_cds_start,
+																						"exons": splice_lib.get_exon_subset(transcript_exons, left, right),
+																						"gene": gene
+																						}
+				full_transcript_dict[transcript]["gene"] = gene
 
-def add_cds_to_transcript_dict(strand, transcript_exons, valid_cds_start, valid_cds_end, start_containing_exon, stop_containing_exon, chrom, valid_adj_cds_start, full_transcript_dict, transcript, gene, annotated, input_cds_dict):
+
+def add_cds_to_transcript_dict(strand, transcript_exons, valid_cds_start, valid_cds_end, start_containing_exon, stop_containing_exon, chrom, valid_adj_cds_start, full_transcript_dict, transcript, gene, annotated, input_cds_dict, cds_seq, aa_seq):
 
 
 	cds_utr_exons = splice_lib.get_cds_utr_exons(strand, transcript_exons, valid_cds_start, valid_cds_end, start_containing_exon, stop_containing_exon)
@@ -363,7 +313,8 @@ def add_cds_to_transcript_dict(strand, transcript_exons, valid_cds_start, valid_
 																					"three_utr_exons": copy.deepcopy(three_utr_exons),
 																					"five_utr_seq": full_transcript_dict[transcript]["sequence"][0:int(valid_adj_cds_start)],
 																					"three_utr_seq": full_transcript_dict[transcript]["sequence"][int(valid_adj_cds_end) + 1:],
-																					"cds_seq": full_transcript_dict[transcript]["sequence"][int(valid_adj_cds_start)-1:int(valid_adj_cds_end) + 3],
+																					"cds_seq": cds_seq,
+																					"aa_seq": aa_seq,
 																					"five_utr_length": splice_lib.calc_length_exon_list(five_utr_exons),
 																					"three_utr_length": splice_lib.calc_length_exon_list(three_utr_exons),
 																					"three_utr_junction_count": len(three_utr_exons) - 1,
@@ -648,6 +599,21 @@ def output_transcript_table(full_transcript_dict, outdir):
 	for transcript in full_transcript_dict:
 
 		output_table.write("\t".join([full_transcript_dict[transcript]["gene"], transcript, str(full_transcript_dict[transcript]["normal_cds_count"]), str(full_transcript_dict[transcript]["nonstop_cds_count"]), full_transcript_dict[transcript]["always_nmd"], full_transcript_dict[transcript]["sometimes_nmd"], full_transcript_dict[transcript]["always_nonstop"], full_transcript_dict[transcript]["sometimes_nonstop"], full_transcript_dict[transcript]["PTC_distances"], full_transcript_dict[transcript]["max_downstream_PTC_distances"], full_transcript_dict[transcript]["CDS_lengths"], full_transcript_dict[transcript]["five_utr_lengths"], full_transcript_dict[transcript]["three_utr_lengths"], full_transcript_dict[transcript]["three_utr_junction_counts"], full_transcript_dict[transcript]["junction_contained_three_utr_lengths"]]) + "\n")
+
+	output_table.close()
+
+
+def output_aa_sequence(full_transcript_dict, outdir):
+
+	output_table = open(outdir + "/transcript_aa_seq.tsv", 'w')
+
+	output_table.write("\t".join(["gene", "transcript_id", "cds_id", "aa_seq"]) + "\n")
+
+	for transcript in full_transcript_dict:
+
+		for cds in full_transcript_dict[transcript]["CDS"]:
+
+			output_table.write("\t".join([full_transcript_dict[transcript]["gene"], transcript, cds_id, full_transcript_dict[transcript]["CDS"]["aa_seq"]]) + "\n")
 
 	output_table.close()
 

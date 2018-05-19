@@ -100,6 +100,7 @@ def translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start):
 
     else:
         #print "No in-frame stop codon found"
+        codon_list = ("").join(codon_list)
         result=[False, None,codon_list]
 
     AA= tl.translate_seq(codon_list)

@@ -4,6 +4,7 @@ import re
 from operator import itemgetter
 import gzip
 import sys
+import translate_lib as tl
 
 def get_junctions(exon_list):
 
@@ -93,12 +94,16 @@ def translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start):
             #codon_list += [codon]
             #print "".join(codon_list)
             adj_cds_end = valid_adj_cds_start + 3*len(codon_list) - 1 ###Again check this
-            return [True, adj_cds_end]
+            codon_list=("").join(codon_list)
+            result= [True,adj_cds_end,codon_list]
 
     else:
         #print "No in-frame stop codon found"
-        return [False, None]
+        result=[False, None,codon_list]
 
+    AA= tl.translate_seq(codon_list)
+    result.append(AA)
+    return result
 
 def genome_to_transcript_coords(position, strand, transcript_exons, direction = "TG"): ##Where "TG" is transcript -> genome and "GT" is genome -> transcript
     '''

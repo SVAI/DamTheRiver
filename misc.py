@@ -30,7 +30,7 @@ def get_kmer_2(input_path, mode = "r" ):
     final=[]
     with open(input_path, "r") as f:
         first_line = f.readline()
-        print first_line
+        #print first_line
         for line in f:
             field= line.split("\t")
             gene_id,transcript_id,cds_id,seq = field

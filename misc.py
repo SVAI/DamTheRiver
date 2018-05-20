@@ -1,5 +1,5 @@
 import argparse
-
+import os
 def get_kmer(cid,seq,k):
     mer_add=[]
     mer=[]
@@ -20,10 +20,11 @@ def parse_kmer(output_path, gene_id,transcript_id, result,mode = "a+"):
         lines.append(line+"\n")
         ofn.writelines(lines)
 
-def parse_kmer2(outdir, result):
+def parse_kmer2(outdir, file_name ,result):
 
-    
-    with open(outdir + "/kmers_by_gene.tsv", "a+") as ofn:
+    #outpath= os.path.join(outdir,"bla_snp_transcript_aa_kmer_1.tsv")
+    outpath= os.path.join(outdir,file_name)
+    with open(outpath , "a+") as ofn:
         ofn.writelines(result)
 
 
@@ -43,6 +44,26 @@ def get_kmer_2(input_path, mode = "r" ):
                 add_on= '\t'.join([mer, gene_id, transcript_id, cds_id ])
                 final.append(add_on+"\n")
         return final
+def map_kmer_gen(input_path, mer_list):
+
+    """
+    run example:
+    result = misc.map_kmer_gen("/home/yup/hackerthon/src/DamTheRiver/dummy_kmer.txt",mer_list)
+
+    :param input_path:
+    :param mer_list:
+    :return:
+
+    """
+    mer_list.sort()
+    result=[]
+    with open(input_path,"r") as f:
+        for line in f:
+            field= line.split("\t")
+            mer, gene_id, transcript_id, cds_id = field
+            if mer in mer_list:
+                result.append('\t'.join([gene_id, mer])+'\n')
+    return result
 
 def main():
 

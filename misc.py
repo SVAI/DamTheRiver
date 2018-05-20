@@ -22,7 +22,7 @@ def parse_kmer(output_path, gene_id,transcript_id, result,mode = "a+"):
 def parse_kmer2(outdir, result):
 
     
-    with open(outdir + "/kmers_by_gene.tsv", a+") as ofn:
+    with open(outdir + "/kmers_by_gene.tsv", "a+") as ofn:
         ofn.writelines(result)
 
 

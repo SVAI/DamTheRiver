@@ -206,11 +206,13 @@ def assign_cds_to_transcript(cds, transcript, full_transcript_dict, input_cds_di
 
 		translation_attempt = splice_lib.translate_ORF(transcript_seq, stop_codons, valid_adj_cds_start)
 
+		translation_attempt_is_successful = translation_attempt[0]
+
 			###Note that there are two possible outcomes: 1) a stop codon is found 2) no stop codon is found, and we keep both of them (potentially we may find examples of non-stop decay substrates)
 
-		translation_attempt_is_successful, valid_adj_cds_end, cds_seq, aa_seq = translation_attempt
-
 		if translation_attempt_is_successful:
+
+			translation_attempt_is_successful, valid_adj_cds_end, cds_seq, aa_seq = translation_attempt
 
 			valid_cds_end = splice_lib.genome_to_transcript_coords(valid_adj_cds_end, strand, transcript_exons, "TG")
 			
@@ -221,6 +223,8 @@ def assign_cds_to_transcript(cds, transcript, full_transcript_dict, input_cds_di
 
 
 		elif translation_attempt[1] is None:
+
+			translation_attempt_is_successful, valid_adj_cds_end, cds_seq, aa_seq = translation_attempt
 
 			if strand == "+":
 
@@ -613,7 +617,7 @@ def output_aa_sequence(full_transcript_dict, outdir):
 
 		for cds in full_transcript_dict[transcript]["CDS"]:
 
-			output_table.write("\t".join([full_transcript_dict[transcript]["gene"], transcript, cds_id, full_transcript_dict[transcript]["CDS"]["aa_seq"]]) + "\n")
+			output_table.write("\t".join([full_transcript_dict[transcript]["gene"], transcript, cds, full_transcript_dict[transcript]["CDS"][cds]["aa_seq"]]) + "\n")
 
 	output_table.close()
 
@@ -714,6 +718,8 @@ def main(args):
 	output_cds_inserted_gtf(full_transcript_dict, output_directory)
 
 	output_transcript_table(full_transcript_dict, output_directory)
+
+	output_aa_sequence(full_transcript_dict, output_directory)
 
 	if make_bigBed:
 		if chrNameLength_path is None or bigGenePred_as_path is None:

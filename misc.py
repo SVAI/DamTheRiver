@@ -56,7 +56,7 @@ def main():
     outdir = args.outdir
 
     kmer_list = get_kmer_2(input_tsv)
-    parse_kmer2(kmer_list, outdir)
+    parse_kmer2(outdir, kmer_list)
 	
 	
 if __name__ == "__main__":

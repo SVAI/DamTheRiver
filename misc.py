@@ -1,3 +1,5 @@
+import argparse
+
 def get_kmer(cid,seq,k):
     mer_add=[]
     mer=[]
@@ -17,8 +19,10 @@ def parse_kmer(output_path, gene_id,transcript_id, result,mode = "a+"):
             line="\t".join([gene_id,transcript_id,cid,mer])
         lines.append(line+"\n")
         ofn.writelines(lines)
-def parse_kmer2(output_path, result):
-    with open(output_path,"a+") as ofn:
+def parse_kmer2(outdir, result):
+
+    
+    with open(outdir + "/kmers_by_gene.tsv", a+") as ofn:
         ofn.writelines(result)
 
 
@@ -39,3 +43,21 @@ def get_kmer_2(input_path, mode = "r" ):
                 final.append(add_on+"\n")
         return final
 
+def main():
+
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input_tsv", type = str, required = True, help = "4-field tsv with peptide sequence in 4th field")
+    parser.add_Argument("--outdir", type = str, required = True, help = "Path to output directory")
+    args = parser.parse_args()
+
+    input_tsv = args.input_tsv
+    outdir = args.outdir
+
+    kmer_list = get_kmer_2(input_tsv)
+    parse_kmer2(outdir)
+	
+	
+if __name__ == "__main__":
+
+    main()

@@ -19,6 +19,7 @@ def parse_kmer(output_path, gene_id,transcript_id, result,mode = "a+"):
             line="\t".join([gene_id,transcript_id,cid,mer])
         lines.append(line+"\n")
         ofn.writelines(lines)
+
 def parse_kmer2(outdir, file_name ,result):
 
     #outpath= os.path.join(outdir,"bla_snp_transcript_aa_kmer_1.tsv")
@@ -31,7 +32,7 @@ def get_kmer_2(input_path, mode = "r" ):
     final=[]
     with open(input_path, "r") as f:
         first_line = f.readline()
-        print first_line
+        #print first_line
         for line in f:
             field= line.split("\t")
             gene_id,transcript_id,cds_id,seq = field
@@ -76,7 +77,7 @@ def main():
     outdir = args.outdir
 
     kmer_list = get_kmer_2(input_tsv)
-    parse_kmer2(outdir)
+    parse_kmer2(outdir, kmer_list)
 	
 	
 if __name__ == "__main__":

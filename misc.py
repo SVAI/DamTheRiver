@@ -48,7 +48,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_tsv", type = str, required = True, help = "4-field tsv with peptide sequence in 4th field")
-    parser.add_Argument("--outdir", type = str, required = True, help = "Path to output directory")
+    parser.add_argument("--outdir", type = str, required = True, help = "Path to output directory")
     args = parser.parse_args()
 
     input_tsv = args.input_tsv
